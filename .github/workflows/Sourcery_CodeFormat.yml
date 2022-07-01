@@ -1,0 +1,35 @@
+name: Code Formatter (Coding)
+on: [push, workflow_dispatch]
+
+jobs:
+  PEP8:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Python Base
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.9
+      - name: Install Python lint libraries
+        run: |
+          pip install autopep8 autoflake isort black
+      - name: Check for Showstoppers
+        run: >
+          autopep8 --verbose --in-place --recursive --aggressive --aggressive
+          --ignore=W605 bot/helper/ext_utils/ bot/helper/telegram_helper/ bot/helper/mirror_utils/download_utils/ bot/helper/mirror_utils/status_utils/ bot/helper/mirror_utils/upload_utils/ bot/modules/ bot/__init__.py bot/__main__.py
+      - name: Remove unused imports and variables
+        run: >
+          autoflake --in-place --recursive
+          --remove-unused-variables --ignore-init-module-imports .
+      - name: Checkup with lint libraries isort and black
+        run: |
+          isort bot/helper/ext_utils/ bot/helper/telegram_helper/ bot/helper/mirror_utils/download_utils/ bot/helper/mirror_utils/status_utils/ bot/helper/mirror_utils/upload_utils/ bot/modules/ bot/__init__.py bot/__main__.py
+          black bot/helper/ext_utils/ bot/helper/telegram_helper/ bot/helper/mirror_utils/download_utils/ bot/helper/mirror_utils/status_utils/ bot/helper/mirror_utils/upload_utils/ bot/modules/ bot/__init__.py bot/__main__.py
+      - uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: "Auto: Code Formatted"
+          commit_options: "--no-verify"
+          repository: .
+          commit_user_name: OAJJAIN
+          commit_user_email: oajjain2@gmail.com
+          commit_author: OAJJAIN <oajjain2@gmail.com> 
