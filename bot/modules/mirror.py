@@ -156,7 +156,7 @@ class MirrorListener:
                     download_dict[self.uid] = ZipStatus(
                         name, m_path, size, self.message
                     )
-                path = m_path + ".zip"
+                path = f"{m_path}.zip"
                 LOGGER.info(f"Zip: orig_path: {m_path}, zip_path: {path}")
                 if self.pswd is not None:
                     if self.isLeech and int(size) > TG_SPLIT_SIZE:

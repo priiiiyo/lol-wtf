@@ -41,15 +41,15 @@ def wayback(update, context):
 
 
 def saveWebPage(pageurl: str):
-    LOGGER.info("wayback running for: " + pageurl)
+    LOGGER.info(f"wayback running for: {pageurl}")
     user_agent = getRandomUserAgent()
     try:
         wayback = waybackpy.Url(pageurl, user_agent)
         archive = wayback.save()
-        LOGGER.info("wayback success for: " + pageurl)
+        LOGGER.info(f"wayback success for: {pageurl}")
         return archive.archive_url
     except Exception as r:
-        LOGGER.error("wayback unsuccess for: " + pageurl + " , " + str(r))
+        LOGGER.error(f"wayback unsuccess for: {pageurl} , {str(r)}")
         return None
 
 

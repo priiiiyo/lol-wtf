@@ -110,7 +110,7 @@ def getHerokuDetails(h_api_key, h_app_name):
             "Authorization": f"Bearer {h_api_key}",
             "Accept": "application/vnd.heroku+json; version=3.account-quotas",
         }
-        path = "/accounts/" + user_id + "/actions/get-quota"
+        path = f"/accounts/{user_id}/actions/get-quota"
         session = requests.Session()
         result = (session.get(heroku_api + path, headers=headers)).json()
         abc = ""
@@ -184,8 +184,7 @@ def hstats(update, context):
         f"<b>Heroku App Name :</b> {HEROKU_APP_NAME}\n"
         f"<b>App Uptime :</b> {currentTime}\n"
     )
-    heroku = getHerokuDetails(HEROKU_API_KEY, HEROKU_APP_NAME)
-    if heroku:
+    if heroku := getHerokuDetails(HEROKU_API_KEY, HEROKU_APP_NAME):
         hstats += heroku
     sendMessage(hstats, context.bot, update.message)
 
@@ -196,10 +195,11 @@ def start(update, context):
     buttons.buildbutton("Channel", "https://t.me/dipeshmirror")
     reply_markup = InlineKeyboardMarkup(buttons.build_menu(2))
     if CustomFilters.authorized_user(update) or CustomFilters.authorized_chat(update):
-        start_string = f"""
+        start_string = """
 This bot can mirror all your links to Google Drive!
 Join our Mirror Group To Acces BoT!
 """
+
         sendMarkup(start_string, context.bot, update.message, reply_markup)
     else:
         sendMarkup(
@@ -322,7 +322,7 @@ help = telegraph.create_page(
     content=help_string_telegraph,
 )["path"]
 
-help_string = f"""
+help_string = """
 💡 Click On View To See Help.
 """
 
@@ -337,8 +337,7 @@ def bot_help(update, context):
 def main():
     start_cleanup()
     if INCOMPLETE_TASK_NOTIFIER and DB_URI is not None:
-        notifier_dict = DbManger().get_incomplete_tasks()
-        if notifier_dict:
+        if notifier_dict := DbManger().get_incomplete_tasks():
             for cid, data in notifier_dict.items():
                 if ospath.isfile(".restartmsg"):
                     with open(".restartmsg") as f:
