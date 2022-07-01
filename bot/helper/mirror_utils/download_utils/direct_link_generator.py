@@ -48,8 +48,9 @@ def direct_link_generator(link: str):
     """direct links generator"""
     if "youtube.com" in link or "youtu.be" in link:
         raise DirectDownloadLinkException(
-            f"<b>⚠⁉ ERROR: </b>Mirroring/Leeching YouTube Videos and links was restricted"
+            "<b>⚠⁉ ERROR: </b>Mirroring/Leeching YouTube Videos and links was restricted"
         )
+
     elif "zippyshare.com" in link:
         return zippy_share(link)
     elif "yadi.sk" in link or "disk.yandex.com" in link:
@@ -136,10 +137,8 @@ def uptobox(url: str) -> str:
             dl_url = link
         except BaseException:
             file_id = re_findall(r"\bhttps?://.*uptobox\.com/(\w+)", url)[0]
-            file_link = "https://uptobox.com/api/link?token=%s&file_code=%s" % (
-                UPTOBOX_TOKEN,
-                file_id,
-            )
+            file_link = f"https://uptobox.com/api/link?token={UPTOBOX_TOKEN}&file_code={file_id}"
+
             req = rget(file_link)
             result = req.json()
             dl_url = result["data"]["dlLink"]
@@ -248,8 +247,7 @@ def onedrive(link: str) -> str:
         raise DirectDownloadLinkException(
             "ERROR: Unauthorized link, the link may be private"
         )
-    dl_link = resp.next.url
-    return dl_link
+    return resp.next.url
 
 
 def pixeldrain(url: str) -> str:
@@ -267,7 +265,7 @@ def pixeldrain(url: str) -> str:
         return dl_link
     else:
         raise DirectDownloadLinkException(
-            "ERROR: Cant't download due {}.".format(resp["message"])
+            f"""ERROR: Cant't download due {resp["message"]}."""
         )
 
 
@@ -342,14 +340,13 @@ def fichier(link: str) -> str:
     elif len(soup.find_all("div", {"class": "ct_warn"})) == 2:
         str_2 = soup.find_all("div", {"class": "ct_warn"})[-1]
         if "you must wait" in str(str_2).lower():
-            numbers = [int(word) for word in str(str_2).split() if word.isdigit()]
-            if not numbers:
+            if numbers := [int(word) for word in str(str_2).split() if word.isdigit()]:
                 raise DirectDownloadLinkException(
-                    "ERROR: 1fichier is on a limit. Please wait a few minutes/hour."
+                    f"ERROR: 1fichier is on a limit. Please wait {numbers[0]} minute."
                 )
             else:
                 raise DirectDownloadLinkException(
-                    f"ERROR: 1fichier is on a limit. Please wait {numbers[0]} minute."
+                    "ERROR: 1fichier is on a limit. Please wait a few minutes/hour."
                 )
         elif "protect access" in str(str_2).lower():
             raise DirectDownloadLinkException(
@@ -363,14 +360,13 @@ def fichier(link: str) -> str:
         str_1 = soup.find_all("div", {"class": "ct_warn"})[-2]
         str_3 = soup.find_all("div", {"class": "ct_warn"})[-1]
         if "you must wait" in str(str_1).lower():
-            numbers = [int(word) for word in str(str_1).split() if word.isdigit()]
-            if not numbers:
+            if numbers := [int(word) for word in str(str_1).split() if word.isdigit()]:
                 raise DirectDownloadLinkException(
-                    "ERROR: 1fichier is on a limit. Please wait a few minutes/hour."
+                    f"ERROR: 1fichier is on a limit. Please wait {numbers[0]} minute."
                 )
             else:
                 raise DirectDownloadLinkException(
-                    f"ERROR: 1fichier is on a limit. Please wait {numbers[0]} minute."
+                    "ERROR: 1fichier is on a limit. Please wait a few minutes/hour."
                 )
         elif "bad password" in str(str_3).lower():
             raise DirectDownloadLinkException(

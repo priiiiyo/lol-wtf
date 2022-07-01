@@ -403,7 +403,7 @@ def bot_sys_stats():
             num_extract += 1
         if stats.status() == MirrorStatus.STATUS_SPLITTING:
             num_split += 1
-    stats = f"""
+    return f"""
 Made by : Reflection Mirror
 Sent : {sent} | Recv : {recv}
 CPU : {cpu}% | RAM : {mem}%
@@ -413,9 +413,6 @@ ZIP : {num_archi} | UNZIP : {num_extract} | TOTAL : {tasks}
 
 T/D : {TORRENT_DIRECT_LIMIT}GB | Z/U : {ZIP_UNZIP_LIMIT}GB
 """
-    return stats
 
 
-dispatcher.add_handler(
-    CallbackQueryHandler(pop_up_stats, pattern="^" + str(THREE) + "$")
-)
+dispatcher.add_handler(CallbackQueryHandler(pop_up_stats, pattern=f"^{str(THREE)}$"))

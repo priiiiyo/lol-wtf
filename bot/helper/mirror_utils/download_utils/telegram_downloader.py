@@ -100,12 +100,8 @@ class TelegramDownloadHelper:
         _dmsg = app.get_messages(
             message.chat.id, reply_to_message_ids=message.message_id
         )
-        media = None
         media_array = [_dmsg.document, _dmsg.video, _dmsg.audio]
-        for i in media_array:
-            if i is not None:
-                media = i
-                break
+        media = next((i for i in media_array if i is not None), None)
         if media is not None:
             with global_lock:
                 # For avoiding locking the thread lock for long time

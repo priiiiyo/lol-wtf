@@ -238,9 +238,7 @@ def split_file(path, size, file_, dirpath, split_size, start_time=0, i=1, inLoop
         base_name, extension = ospath.splitext(file_)
         split_size = split_size - 2500000
         while i <= parts:
-            parted_name = "{}.part{}{}".format(
-                str(base_name), str(i).zfill(3), str(extension)
-            )
+            parted_name = f"{str(base_name)}.part{str(i).zfill(3)}{str(extension)}"
             out_path = ospath.join(dirpath, parted_name)
             srun(
                 [
@@ -278,7 +276,7 @@ def split_file(path, size, file_, dirpath, split_size, start_time=0, i=1, inLoop
             start_time += lpd - 3
             i = i + 1
     else:
-        out_path = ospath.join(dirpath, file_ + ".")
+        out_path = ospath.join(dirpath, f"{file_}.")
         srun(
             [
                 "split",
