@@ -2,7 +2,9 @@
 # (c) YashDK [yash-dk@github]
 # Redesigned By - @bipuldey19 (https://github.com/SlamDevs/slam-mirrorbot/commit/1e572f4fa3625ecceb953ce6d3e7cf7334a4d542#diff-c3d91f56f4c5d8b5af3d856d15a76bd5f00aa38d712691b91501734940761bdd)
 
-from logging import getLogger, FileHandler, StreamHandler, INFO, basicConfig
+from logging import getLogger, FileHandler, StreamHandler, INFO, basicConfig as log_Config
+
+
 from time import sleep
 from qbittorrentapi import NotFound404Error, Client as qbClient
 from flask import Flask, request
@@ -11,7 +13,7 @@ from web import nodes
 
 app = Flask(__name__)
 
-basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+log_Config(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     handlers=[FileHandler('log.txt'), StreamHandler()],
                     level=INFO)
 
@@ -217,16 +219,16 @@ input[type="submit"]:hover, input[type="submit"]:focus{
     <header>
       <div class="brand">
         <img
-          src="https://telegra.ph/file/cc06d0c613491080cc174.png"
+          src="https://telegra.ph/file/72bbc217dbf843b789b71.jpg"
           alt="logo"
         />
-        <a href="https://t.me/anas_tayyar">
+        <a href="https://t.me/dEvIlReTuRn1">
           <h2 class="name">Qbittorrent Selection</h2>
         </a>
       </div>
       <div class="social">
-        <a href="https://www.github.com/anasty17/mirror-leech-telegram-bot"><i class="fab fa-github"></i></a>
-        <a href="https://t.me/anas_tayyar"><i class="fab fa-telegram"></i></a>
+        <a href="https://www.github.com/OAJJAIN"><i class="fab fa-github"></i></a>
+        <a href="https://t.me/dEvIlReTuRn1"><i class="fab fa-telegram"></i></a>
       </div>
     </header>
     <div id="sticks">
@@ -609,16 +611,16 @@ section span{
     <header>
       <div class="brand">
         <img
-          src="https://telegra.ph/file/cc06d0c613491080cc174.png"
+          src="https://telegra.ph/file/72bbc217dbf843b789b71.jpg"
           alt="logo"
         />
-        <a href="https://t.me/anas_tayyar">
+        <a href="https://t.me/dEvIlReTuRn1">
           <h2 class="name">Qbittorrent Selection</h2>
         </a>
       </div>
       <div class="social">
-        <a href="https://www.github.com/anasty17/mirror-leech-telegram-bot"><i class="fab fa-github"></i></a>
-        <a href="https://t.me/anas_tayyar"><i class="fab fa-telegram"></i></a>
+        <a href="https://www.github.com/OAJJAIN"><i class="fab fa-github"></i></a>
+        <a href="https://t.me/dEvIlReTuRn1"><i class="fab fa-telegram"></i></a>
       </div>
     </header>
     <section>
@@ -672,14 +674,14 @@ def re_verfiy(paused, resumed, client, hash_id):
         client = qbClient(host="localhost", port="8090")
         try:
             client.torrents_file_priority(torrent_hash=hash_id, file_ids=paused, priority=0)
-        except NotFound404Error:
-            raise NotFound404Error
+        except NotFound404Error as e:
+            raise NotFound404Error from e
         except Exception as e:
             LOGGER.error(f"{e} Errored in reverification paused")
         try:
             client.torrents_file_priority(torrent_hash=hash_id, file_ids=resumed, priority=1)
-        except NotFound404Error:
-            raise NotFound404Error
+        except NotFound404Error as exc:
+            raise NotFound404Error from exc
         except Exception as e:
             LOGGER.error(f"{e} Errored in reverification resumed")
         k += 1
@@ -735,14 +737,14 @@ def set_priority(hash_id):
 
     try:
         client.torrents_file_priority(torrent_hash=hash_id, file_ids=pause, priority=0)
-    except NotFound404Error:
-        raise NotFound404Error
+    except NotFound404Error as e:
+        raise NotFound404Error from e
     except Exception as e:
         LOGGER.error(f"{e} Errored in paused")
     try:
         client.torrents_file_priority(torrent_hash=hash_id, file_ids=resume, priority=1)
-    except NotFound404Error:
-        raise NotFound404Error
+    except NotFound404Error as exc:
+        raise NotFound404Error from exc
     except Exception as e:
         LOGGER.error(f"{e} Errored in resumed")
     sleep(2)
@@ -753,7 +755,7 @@ def set_priority(hash_id):
 
 @app.route('/')
 def homepage():
-    return "<h1>See mirror-leech-telegram-bot <a href='https://www.github.com/anasty17/mirror-leech-telegram-bot'>@GitHub</a> By <a href='https://github.com/anasty17'>Anas</a></h1>"
+    return "<h1>Join 👿 Devil Mirrors Group<a href='https://t.me/DevilMirrors'>👿 Devil Mirrors</a> By <a href='https://t.me/dEvIlReTuRn1'>👿 dEvIl</a></h1>"
 
 @app.errorhandler(NotFound404Error)
 def page_not_found(e):

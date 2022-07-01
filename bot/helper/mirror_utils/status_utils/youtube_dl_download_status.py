@@ -1,6 +1,5 @@
 from bot import DOWNLOAD_DIR
 from bot.helper.ext_utils.bot_utils import (
-    EngineStatus,
     MirrorStatus,
     get_readable_file_size,
     get_readable_time,
@@ -36,9 +35,6 @@ class YoutubeDLDownloadStatus:
     def status(self):
         return MirrorStatus.STATUS_DOWNLOADING
 
-    def eng(self):
-        return EngineStatus.STATUS_YT
-
     def name(self):
         return self.__obj.name
 
@@ -61,8 +57,14 @@ class YoutubeDLDownloadStatus:
         try:
             seconds = (self.size_raw() - self.processed_bytes()) / self.speed_raw()
             return f"{get_readable_time(seconds)}"
-        except BaseException:
+        except ZeroDivisionError:
             return "-"
 
     def download(self):
         return self.__obj
+
+    def ytdl_download(self):
+        return self.__obj
+
+    def engine(self):
+        return "\n├ ⚙️ Eɴɢɪɴᴇ ⇢ ʏʟ-ᴅʟᴘ ᴠ2022.5.18"

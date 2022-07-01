@@ -7,7 +7,7 @@ from time import sleep
 from telegraph import Telegraph
 from telegraph.exceptions import RetryAfterError
 
-from bot import LOGGER
+from bot import AUTHOR_NAME, AUTHOR_URL, LOGGER
 
 
 class TelegraphHelper:
@@ -26,7 +26,7 @@ class TelegraphHelper:
             author_url=self.author_url,
         )
         self.access_token = self.telegraph.get_access_token()
-        LOGGER.info("Creating Telegraph Account")
+        LOGGER.info(f"Creating TELEGRAPH Account using  '{self.short_name}' name")
 
     def create_page(self, title, content):
         try:
@@ -78,10 +78,10 @@ class TelegraphHelper:
                     nxt_page += 1
             self.edit_page(
                 path=path[prev_page],
-                title="Dipesh-Mirrors Torrent Search",
+                title=f"{AUTHOR_NAME}",
                 content=content,
             )
         return
 
 
-telegraph = TelegraphHelper("Reflection Mirror", "https://t.me/dipeshmirror")
+telegraph = TelegraphHelper(f"{AUTHOR_NAME}", f"{AUTHOR_URL}")

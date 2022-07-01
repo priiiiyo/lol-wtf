@@ -9,7 +9,7 @@ from bot.helper.telegram_helper.filters import CustomFilters
 
 def shell(update, context):
     message = update.effective_message
-    cmd = message.text.split(" ", 1)
+    cmd = message.text.split(maxsplit=1)
     if len(cmd) == 1:
         return message.reply_text("No command to execute was given.", parse_mode="HTML")
     cmd = cmd[1]

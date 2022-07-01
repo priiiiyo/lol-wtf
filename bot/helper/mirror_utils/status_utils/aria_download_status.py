@@ -1,5 +1,5 @@
 from bot import DOWNLOAD_DIR, LOGGER, aria2
-from bot.helper.ext_utils.bot_utils import EngineStatus, MirrorStatus
+from bot.helper.ext_utils.bot_utils import MirrorStatus
 
 
 def get_download(gid):
@@ -65,9 +65,6 @@ class AriaDownloadStatus:
         else:
             return MirrorStatus.STATUS_DOWNLOADING
 
-    def eng(self):
-        return EngineStatus.STATUS_ARIA
-
     def aria_download(self):
         return self.__download
 
@@ -94,9 +91,12 @@ class AriaDownloadStatus:
             return
         if len(download.followed_by_ids) != 0:
             downloads = aria2.get_downloads(download.followed_by_ids)
-            self.__listener.onDownloadError("Download stopped by user!")
+            self.__listener.onDownloadError("Dᴏᴡɴʟᴏᴀᴅ Sᴛᴏᴘᴘᴇᴅ Bʏ Usᴇʀ﹗")
             aria2.remove(downloads, force=True, files=True)
             aria2.remove([download], force=True, files=True)
             return
-        self.__listener.onDownloadError("Download stopped by user!")
+        self.__listener.onDownloadError("Dᴏᴡɴʟᴏᴀᴅ Sᴛᴏᴘᴘᴇᴅ Bʏ Usᴇʀ﹗")
         aria2.remove([download], force=True, files=True)
+
+    def engine(self):
+        return "\n├ ⚙️ Eɴɢɪɴᴇ ⇢ Aʀɪᴀ2ᴄ ᴠ1.35.0"

@@ -34,17 +34,17 @@ def mirror_status(update, context):
         if len(download_dict) == 0:
             currentTime = get_readable_time(time() - botStartTime)
             free = get_readable_file_size(disk_usage(DOWNLOAD_DIR).free)
-            message = "No Active Downloads !\n___________________________"
+            message = "Nᴏ Aᴄᴛɪᴠᴇ Dᴏᴡɴʟᴏᴀᴅs ﹗\n___________________________"
             message += (
-                f"\n<b>CPU:</b> {cpu_percent()}% | <b>FREE:</b> {free}"
-                f"\n<b>RAM:</b> {virtual_memory().percent}% | <b>UPTIME:</b> {currentTime}"
+                f"\n🖥️ CPU ⇢ {cpu_percent()}% | 🗄️ FREE ⇢ {free}"
+                f"\n💾 RAM ⇢ {virtual_memory().percent}% | ⏳ UPTIME ⇢ {currentTime}"
             )
             reply_message = sendMessage(message, context.bot, update.message)
             Thread(
                 target=auto_delete_message,
                 args=(context.bot, update.message, reply_message),
             ).start()
-            return
+            return reply_message
     index = update.effective_chat.id
     with status_reply_dict_lock:
         if index in status_reply_dict.keys():
@@ -57,7 +57,7 @@ def mirror_status(update, context):
 def status_pages(update, context):
     query = update.callback_query
     data = query.data
-    data = data.split(" ")
+    data = data.split()
     query.answer()
     if done := turn(data):
         update_all_messages()

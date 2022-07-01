@@ -1,15 +1,12 @@
-from bot.helper.ext_utils.bot_utils import (
-    EngineStatus,
-    MirrorStatus,
-    get_readable_file_size,
-)
+from bot.helper.ext_utils.bot_utils import MirrorStatus, get_readable_file_size
 
 
 class SplitStatus:
-    def __init__(self, name, path, size):
+    def __init__(self, name, path, size, message):
         self.__name = name
         self.__path = path
         self.__size = size
+        self.message = message
 
     def progress(self):
         return "0"
@@ -32,8 +29,8 @@ class SplitStatus:
     def status(self):
         return MirrorStatus.STATUS_SPLITTING
 
-    def eng(self):
-        return EngineStatus.STATUS_SPLIT
-
     def processed_bytes(self):
         return 0
+
+    def engine(self):
+        return "\n├ ⚙️ Eɴɢɪɴᴇ ⇢ ffmpeg 4.4.1"

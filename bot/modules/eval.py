@@ -3,6 +3,7 @@ from io import BytesIO, StringIO
 from os import chdir, getcwd
 from os import path as ospath
 from textwrap import indent
+from threading import Thread
 from traceback import format_exc
 
 from telegram import ParseMode
@@ -11,7 +12,7 @@ from telegram.ext import CommandHandler
 from bot import LOGGER, dispatcher
 from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.telegram_helper.filters import CustomFilters
-from bot.helper.telegram_helper.message_utils import sendMessage
+from bot.helper.telegram_helper.message_utils import auto_delete_message, sendMessage
 
 namespaces = {}
 
@@ -68,7 +69,7 @@ def cleanup_code(code):
 
 def do(func, bot, update):
     log_input(update)
-    content = update.message.text.split(" ", 1)[-1]
+    content = update.message.text.split(maxsplit=1)[-1]
     body = cleanup_code(content)
     env = namespace_of(update.message.chat_id, update, bot)
 
@@ -102,7 +103,7 @@ def do(func, bot, update):
             else:
                 try:
                     result = f"{repr(eval(body, env))}"
-                except BaseException:
+                except Exception:
                     pass
         else:
             result = f"{value}{func_return}"
@@ -126,7 +127,11 @@ def exechelp(update, context):
 • {BotCommands.ExecCommand} <i>Run Commands In Exec</i>
 • {BotCommands.ClearLocalsCommand} <i>Cleared locals</i>
 """
-    sendMessage(help_string, context.bot, update.message)
+    reply_message = sendMessage(help_string, context.bot, update.message)
+    Thread(
+        target=auto_delete_message, args=(context.bot, update.message, reply_message)
+    ).start()
+    return reply_message
 
 
 EVAL_HANDLER = CommandHandler(

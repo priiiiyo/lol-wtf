@@ -20,7 +20,7 @@ from bot.helper.telegram_helper import button_build
 from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.message_utils import (
-    auto_delete_message,
+    auto_delete_upload_message,
     editMessage,
     sendMarkup,
     sendMessage,
@@ -34,26 +34,26 @@ def getleechinfo(from_user):
     thumbpath = f"Thumbnails/{user_id}.jpg"
     if user_id in AS_DOC_USERS or user_id not in AS_MEDIA_USERS and AS_DOCUMENT:
         ltype = "DOCUMENT"
-        buttons.sbutton("Send As Media", f"leechset {user_id} med")
+        buttons.sbutton("Sᴇɴᴅ As Mᴇᴅɪᴀ", f"leechset {user_id} med")
     else:
         ltype = "MEDIA"
-        buttons.sbutton("Send As Document", f"leechset {user_id} doc")
+        buttons.sbutton("Sᴇɴᴅ As Dᴏᴄᴜᴍᴇɴᴛ", f"leechset {user_id} doc")
 
     if ospath.exists(thumbpath):
         thumbmsg = "Exists"
-        buttons.sbutton("Delete Thumbnail", f"leechset {user_id} thumb")
+        buttons.sbutton("Dᴇʟᴇᴛᴇ Tʜᴜᴍʙɴᴀɪʟ", f"leechset {user_id} thumb")
     else:
         thumbmsg = "Not Exists"
 
     if AUTO_DELETE_MESSAGE_DURATION == -1:
-        buttons.sbutton("Close", f"leechset {user_id} close")
+        buttons.sbutton("Cʟᴏsᴇ", f"leechset {user_id} close")
 
     button = InlineKeyboardMarkup(buttons.build_menu(1))
 
     text = (
-        f"<u>Leech Settings for <a href='tg://user?id={user_id}'>{name}</a></u>\n"
-        f"Leech Type <b>{ltype}</b>\n"
-        f"Custom Thumbnail <b>{thumbmsg}</b>"
+        f"<u>Lᴇᴇᴄʜ Sᴇᴛᴛɪɴɢs ꜰᴏʀ <a href='tg://user?id={user_id}'>{name}</a></u>\n"
+        f"Lᴇᴇᴄʜ Tʏᴘᴇ <b>{ltype}</b>\n"
+        f"Cᴜsᴛᴏᴍ Tʜᴜᴍʙɴᴀɪʟ <b>{thumbmsg}</b>"
     )
     return text, button
 
@@ -67,7 +67,8 @@ def leechSet(update, context):
     msg, button = getleechinfo(update.message.from_user)
     choose_msg = sendMarkup(msg, context.bot, update.message, button)
     Thread(
-        target=auto_delete_message, args=(context.bot, update.message, choose_msg)
+        target=auto_delete_upload_message,
+        args=(context.bot, update.message, choose_msg),
     ).start()
 
 
@@ -76,7 +77,7 @@ def setLeechType(update, context):
     message = query.message
     user_id = query.from_user.id
     data = query.data
-    data = data.split(" ")
+    data = data.split()
     if user_id != int(data[1]):
         query.answer(text="Not Yours!", show_alert=True)
     elif data[2] == "doc":
@@ -110,7 +111,7 @@ def setLeechType(update, context):
         try:
             query.message.delete()
             query.message.reply_to_message.delete()
-        except BaseException:
+        except Exception:
             pass
 
 
@@ -127,12 +128,17 @@ def setThumb(update, context):
         osremove(photo_dir)
         if DB_URI is not None:
             DbManger().user_save_thumb(user_id, des_dir)
-        msg = f"Custom thumbnail saved for {update.message.from_user.mention_html(update.message.from_user.first_name)}."
-        sendMessage(msg, context.bot, update.message)
+        msg = f"Cᴜsᴛᴏᴍ ᴛʜᴜᴍʙɴᴀɪʟ sᴀᴠᴇᴅ ꜰᴏʀ {update.message.from_user.mention_html(update.message.from_user.first_name)}."
+        reply_message = sendMessage(msg, context.bot, update.message)
     else:
-        sendMessage(
-            "Reply to a photo to save custom thumbnail.", context.bot, update.message
+        reply_message = sendMessage(
+            "Rᴇᴘʟʏ ᴛᴏ ᴀ ᴘʜᴏᴛᴏ ᴛᴏ sᴀᴠᴇ ᴄᴜsᴛᴏᴍ ᴛʜᴜᴍʙɴᴀɪʟ.", context.bot, update.message
         )
+    Thread(
+        target=auto_delete_upload_message,
+        args=(context.bot, update.message, reply_message),
+    ).start()
+    return reply_message
 
 
 leech_set_handler = CommandHandler(

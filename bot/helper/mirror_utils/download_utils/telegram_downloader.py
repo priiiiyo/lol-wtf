@@ -1,8 +1,7 @@
+#!/usr/bin/env python3
 from logging import WARNING, getLogger
-from threading import Lock, RLock
+from threading import Lock, RLock, Thread
 from time import time
-
-from pyrogram import Client, enums
 
 from bot import (
     LOGGER,
@@ -12,12 +11,12 @@ from bot import (
     download_dict,
     download_dict_lock,
 )
-from bot.helper.ext_utils.bot_utils import get_readable_file_size
+from bot.helper.ext_utils.bot_utils import get_readable_file_size, get_readable_time
 from bot.helper.ext_utils.fs_utils import check_storage_threshold
 from bot.helper.mirror_utils.upload_utils.gdriveTools import GoogleDriveHelper
 from bot.helper.telegram_helper.message_utils import (
+    auto_delete_upload_message,
     sendMarkup,
-    sendMessage,
     sendStatusMessage,
 )
 
@@ -74,7 +73,7 @@ class TelegramDownloadHelper:
         with global_lock:
             try:
                 GLOBAL_GID.remove(self.__id)
-            except BaseException:
+            except Exception:
                 pass
         self.__listener.onDownloadError(error)
 
@@ -94,14 +93,17 @@ class TelegramDownloadHelper:
         if download is not None:
             self.__onDownloadComplete()
         elif not self.__is_cancelled:
-            self.__onDownloadError("Internal error occurred")
+            self.__onDownloadError("Iɴᴛᴇʀɴᴀʟ ᴇʀʀᴏʀ ᴏᴄᴄᴜʀʀᴇᴅ")
 
     def add_download(self, message, path, filename):
         _dmsg = app.get_messages(
             message.chat.id, reply_to_message_ids=message.message_id
         )
         media_array = [_dmsg.document, _dmsg.video, _dmsg.audio]
-        media = next((i for i in media_array if i is not None), None)
+        for i in media_array:
+            if i is not None:
+                media = i
+                break
         if media is not None:
             with global_lock:
                 # For avoiding locking the thread lock for long time
@@ -119,33 +121,54 @@ class TelegramDownloadHelper:
                     LOGGER.info("Checking File/Folder if already in Drive...")
                     smsg, button = GoogleDriveHelper().drive_list(name, True, True)
                     if smsg:
-                        msg = "File/Folder is already available in Drive.\nHere are the search results:"
-                        self.__onEventEnd()
-                        return sendMarkup(
+                        msg = "Fɪʟᴇ/Fᴏʟᴅᴇʀ ɪs ᴀʟʀᴇᴀᴅʏ ᴀᴠᴀɪʟᴀʙʟᴇ ɪɴ Dʀɪᴠᴇ.\nHᴇʀᴇ ᴀʀᴇ ᴛʜᴇ sᴇᴀʀᴄʜ ʀᴇsᴜʟᴛs﹕"
+                        msg += f"\n\n⏰ Eʟᴀᴘsᴇᴅ Tɪᴍᴇ ⇢ {get_readable_time(time() - self.__listener.message.date.timestamp())}\n"
+                        reply_message = sendMarkup(
                             msg, self.__listener.bot, self.__listener.message, button
                         )
+                        Thread(
+                            target=auto_delete_upload_message,
+                            args=(
+                                self.__listener.bot,
+                                self.__listener.message,
+                                reply_message,
+                            ),
+                        ).start()
+                        return reply_message
+
                 if STORAGE_THRESHOLD is not None:
                     arch = any([self.__listener.isZip, self.__listener.extract])
                     acpt = check_storage_threshold(size, arch)
                     if not acpt:
-                        msg = f"You must leave {STORAGE_THRESHOLD}GB free storage."
+                        msg = f"Yᴏᴜ ᴍᴜsᴛ ʟᴇᴀᴠᴇ {STORAGE_THRESHOLD}GB ꜰʀᴇᴇ sᴛᴏʀᴀɢᴇ."
                         msg += (
-                            f"\nYour File/Folder size is {get_readable_file_size(size)}"
+                            f"\nYᴏᴜʀ Fɪʟᴇ/Fᴏʟᴅᴇʀ sɪᴢᴇ ɪs {get_readable_file_size(size)}"
                         )
-                        return sendMessage(
-                            msg, self.__listener.bot, self.__listener.message
+                        msg += f"\n\n⏰ Eʟᴀᴘsᴇᴅ Tɪᴍᴇ ⇢ {get_readable_time(time() - self.__listener.message.date.timestamp())}\n"
+                        reply_message = sendMarkup(
+                            msg, self.__listener.bot, self.__listener.message, button
                         )
+                        Thread(
+                            target=auto_delete_upload_message,
+                            args=(
+                                self.__listener.bot,
+                                self.__listener.message,
+                                reply_message,
+                            ),
+                        ).start()
+                        return reply_message
+
                 self.__onDownloadStart(name, size, media.file_unique_id)
                 LOGGER.info(
                     f"Downloading Telegram file with id: {media.file_unique_id}"
                 )
-                self.__download(_dmsg, path)
+                return self.__download(_dmsg, path)
             else:
-                self.__onDownloadError("File already being downloaded!")
+                self.__onDownloadError("Fɪʟᴇ ᴀʟʀᴇᴀᴅʏ ʙᴇɪɴɢ ᴅᴏᴡɴʟᴏᴀᴅᴇᴅ﹗")
         else:
-            self.__onDownloadError("No document in the replied message")
+            self.__onDownloadError("Nᴏ ᴅᴏᴄᴜᴍᴇɴᴛ ɪɴ ᴛʜᴇ ʀᴇᴘʟɪᴇᴅ ᴍᴇssᴀɢᴇ")
 
     def cancel_download(self):
         LOGGER.info(f"Cancelling download on user request: {self.__id}")
         self.__is_cancelled = True
-        self.__onDownloadError("Cancelled by user!")
+        self.__onDownloadError("Cᴀɴᴄᴇʟʟᴇᴅ Bʏ  Usᴇʀ﹗")

@@ -1,5 +1,4 @@
 from bot.helper.ext_utils.bot_utils import (
-    EngineStatus,
     MirrorStatus,
     get_readable_file_size,
     get_readable_time,
@@ -24,9 +23,6 @@ class CloneStatus:
 
     def status(self):
         return MirrorStatus.STATUS_CLONING
-
-    def eng(self):
-        return EngineStatus.STATUS_GDRIVE
 
     def name(self):
         return self.__obj.name
@@ -61,3 +57,6 @@ class CloneStatus:
 
     def download(self):
         return self.__obj
+
+    def engine(self):
+        return "\n├ ⚙️ Eɴɢɪɴᴇ ⇢ Gᴏᴏɢʟᴇ Aᴘɪ ᴠ2.59.0"

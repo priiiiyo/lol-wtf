@@ -1,8 +1,4 @@
-from bot.helper.ext_utils.bot_utils import (
-    EngineStatus,
-    MirrorStatus,
-    get_readable_file_size,
-)
+from bot.helper.ext_utils.bot_utils import MirrorStatus, get_readable_file_size
 
 
 class ZipStatus:
@@ -24,23 +20,17 @@ class ZipStatus:
     def path(self):
         return self.__path
 
-    def eng(self):
-        return EngineStatus.STATUS_ZIP
-
     def size(self):
         return get_readable_file_size(self.__size)
 
     def eta(self):
-        return get_readable_time(self.__info.eta)
-
-    def message(self):
-        return Message(self.__message)
+        return "0s"
 
     def status(self):
         return MirrorStatus.STATUS_ARCHIVING
 
-    def eng(self):
-        return EngineStatus.STATUS_ZIP
-
     def processed_bytes(self):
         return 0
+
+    def engine():
+        return "\n├ ⚙️ Eɴɢɪɴᴇ ⇢ 7ᴢ ᴠ16.02"

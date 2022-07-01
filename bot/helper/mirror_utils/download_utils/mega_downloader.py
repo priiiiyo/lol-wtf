@@ -1,5 +1,6 @@
 from pathlib import Path
-from threading import Lock
+from threading import Lock, Thread
+from time import time
 
 from megasdkrestclient import MegaSdkRestClient, constants
 
@@ -12,10 +13,15 @@ from bot import (
     download_dict,
     download_dict_lock,
 )
-from bot.helper.ext_utils.bot_utils import get_readable_file_size, setInterval
+from bot.helper.ext_utils.bot_utils import (
+    get_readable_file_size,
+    get_readable_time,
+    setInterval,
+)
 from bot.helper.ext_utils.fs_utils import check_storage_threshold, get_base_name
 from bot.helper.mirror_utils.upload_utils.gdriveTools import GoogleDriveHelper
 from bot.helper.telegram_helper.message_utils import (
+    auto_delete_upload_message,
     sendMarkup,
     sendMessage,
     sendStatusMessage,
@@ -97,7 +103,7 @@ class MegaDownloader:
             self.__onDownloadComplete()
             return
         if dlInfo["state"] == constants.State.TYPE_STATE_CANCELED:
-            self.__onDownloadError("Download stopped by user!")
+            self.__onDownloadError("Dᴏᴡɴʟᴏᴀᴅ Sᴛᴏᴘᴘᴇᴅ Bʏ Usᴇʀ﹗")
             return
         if dlInfo["state"] == constants.State.TYPE_STATE_FAILED:
             self.__onDownloadError(dlInfo["error_string"])
@@ -124,7 +130,14 @@ class MegaDownloader:
             dl = self.__mega_client.addDl(link, path)
         except Exception as err:
             LOGGER.error(err)
-            return sendMessage(str(err), self.__listener.bot, self.__listener.message)
+            reply_message = sendMessage(
+                str(err), self.__listener.bot, self.__listener.message
+            )
+            Thread(
+                target=auto_delete_upload_message,
+                args=(self.__listener.bot, self.__listener.message, reply_message),
+            ).start()
+            return reply_message
         gid = dl["gid"]
         info = self.__mega_client.getDownloadInfo(gid)
         file_name = info["name"]
@@ -137,38 +150,68 @@ class MegaDownloader:
             elif self.__listener.extract:
                 try:
                     mname = get_base_name(mname)
-                except BaseException:
+                except Exception:
                     mname = None
             if mname is not None:
                 smsg, button = GoogleDriveHelper().drive_list(mname, True)
                 if smsg:
-                    msg1 = "File/Folder is already available in Drive.\nHere are the search results:"
-                    return sendMarkup(
+                    msg1 = "Fɪʟᴇ/Fᴏʟᴅᴇʀ ɪs ᴀʟʀᴇᴀᴅʏ ᴀᴠᴀɪʟᴀʙʟᴇ ɪɴ Dʀɪᴠᴇ.\nHᴇʀᴇ ᴀʀᴇ ᴛʜᴇ sᴇᴀʀᴄʜ ʀᴇsᴜʟᴛs﹕ "
+                    msg1 += f"\n\n⏰ Eʟᴀᴘsᴇᴅ Tɪᴍᴇ ⇢ {get_readable_time(time() - self.__listener.message.date.timestamp())}\n"
+                    reply_message = sendMarkup(
                         msg1, self.__listener.bot, self.__listener.message, button
                     )
+                    Thread(
+                        target=auto_delete_upload_message,
+                        args=(
+                            self.__listener.bot,
+                            self.__listener.message,
+                            reply_message,
+                        ),
+                    ).start()
+                    return reply_message
         if any([STORAGE_THRESHOLD, ZIP_UNZIP_LIMIT, MEGA_LIMIT]):
             arch = any([self.__listener.isZip, self.__listener.extract])
             if STORAGE_THRESHOLD is not None:
                 acpt = check_storage_threshold(file_size, arch)
                 if not acpt:
-                    msg = f"You must leave {STORAGE_THRESHOLD}GB free storage."
-                    msg += f"\nYour File/Folder size is {get_readable_file_size(file_size)}"
-                    return sendMessage(
-                        msg, self.__listener.bot, self.__listener.message
+                    msg = f"Yᴏᴜ ᴍᴜsᴛ ʟᴇᴀᴠᴇ {STORAGE_THRESHOLD}GB ꜰʀᴇᴇ sᴛᴏʀᴀɢᴇ."
+                    msg += f"\nYᴏᴜʀ Fɪʟᴇ/Fᴏʟᴅᴇʀ sɪᴢᴇ ɪs {get_readable_file_size(file_size)}"
+                    msg += f"\n\n⏰ Eʟᴀᴘsᴇᴅ Tɪᴍᴇ ⇢ {get_readable_time(time() - self.__listener.message.date.timestamp())}\n"
+                    reply_message = sendMarkup(
+                        msg, self.__listener.bot, self.__listener.message, button
                     )
+                    Thread(
+                        target=auto_delete_upload_message,
+                        args=(
+                            self.__listener.bot,
+                            self.__listener.message,
+                            reply_message,
+                        ),
+                    ).start()
+                    return reply_message
             limit = None
             if ZIP_UNZIP_LIMIT is not None and arch:
-                msg3 = f"Failed, Zip/Unzip limit is {ZIP_UNZIP_LIMIT}GB.\nYour File/Folder size is {get_readable_file_size(file_size)}."
+                msg3 = f"Failed, Zɪᴘ/Uɴᴢɪᴘ ʟɪᴍɪᴛ ɪs {ZIP_UNZIP_LIMIT}GB.\nYᴏᴜʀ Fɪʟᴇ/Fᴏʟᴅᴇʀ sɪᴢᴇ ɪs {get_readable_file_size(file_size)}."
                 limit = ZIP_UNZIP_LIMIT
             elif MEGA_LIMIT is not None:
-                msg3 = f"Failed, Mega limit is {MEGA_LIMIT}GB.\nYour File/Folder size is {get_readable_file_size(file_size)}."
+                msg3 = f"Failed, Mega limit is {MEGA_LIMIT}GB.\nYᴏᴜʀ Fɪʟᴇ/Fᴏʟᴅᴇʀ sɪᴢᴇ ɪs {get_readable_file_size(file_size)}."
                 limit = MEGA_LIMIT
             if limit is not None:
                 LOGGER.info("Checking File/Folder Size...")
                 if file_size > limit * 1024**3:
-                    return sendMessage(
-                        msg3, self.__listener.bot, self.__listener.message
+                    msg3 += f"\n\n⏰ Eʟᴀᴘsᴇᴅ Tɪᴍᴇ ⇢ {get_readable_time(time() - self.__listener.message.date.timestamp())}\n"
+                    reply_message = sendMarkup(
+                        msg3, self.__listener.bot, self.__listener.message, button
                     )
+                    Thread(
+                        target=auto_delete_upload_message,
+                        args=(
+                            self.__listener.bot,
+                            self.__listener.message,
+                            reply_message,
+                        ),
+                    ).start()
+                    return reply_message
         self.__onDownloadStart(file_name, file_size, gid)
         LOGGER.info(f"Mega download started with gid: {gid}")
 

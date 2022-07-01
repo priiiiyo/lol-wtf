@@ -59,7 +59,6 @@ class DbManger:
         self.cur.execute(
             f"CREATE TABLE IF NOT EXISTS {botname} (cid bigint, link text, tag text)"
         )
-
         self.conn.commit()
         LOGGER.info("Database Initiated")
         self.db_load()
@@ -83,6 +82,7 @@ class DbManger:
                         makedirs("Thumbnails")
                     with open(path, "wb+") as f:
                         f.write(row[5])
+                        f.close()
                 if row[6] and row[0] not in LEECH_LOG:
                     LEECH_LOG.add(row[0])
             LOGGER.info("Users data has been imported from Database")
@@ -110,7 +110,7 @@ class DbManger:
         self.cur.execute(sql)
         self.conn.commit()
         self.disconnect()
-        return "Authorized successfully"
+        return "Aᴜᴛʜᴏʀɪᴢᴇᴅ sᴜᴄᴄᴇssꜰᴜʟʟʏ ✅"
 
     def user_unauth(self, chat_id: int):
         if self.err:
@@ -120,7 +120,29 @@ class DbManger:
             self.cur.execute(sql)
             self.conn.commit()
             self.disconnect()
-            return "Unauthorized successfully"
+            return "Uɴᴀᴜᴛʜᴏʀɪᴢᴇᴅ sᴜᴄᴄᴇssꜰᴜʟʟʏ 😁"
+
+    def addleech_log(self, chat_id: int):
+        if self.err:
+            return "Error in DB connection, check log for details"
+        elif not self.user_check(chat_id):
+            sql = f"INSERT INTO users (uid, leechlog) VALUES ({chat_id}, TRUE)"
+        else:
+            sql = f"UPDATE users SET leechlog = TRUE WHERE uid = {chat_id}"
+        self.cur.execute(sql)
+        self.conn.commit()
+        self.disconnect()
+        return "Sᴜᴄᴄᴇssꜰᴜʟʟʏ Aᴅᴅᴇᴅ Tᴏ Lᴇᴇᴄʜ Lᴏɢs ✅"
+
+    def rmleech_log(self, chat_id: int):
+        if self.err:
+            return "Error in DB connection, check log for details"
+        elif self.user_check(chat_id):
+            sql = f"UPDATE users SET leechlog = FALSE WHERE uid = {chat_id}"
+            self.cur.execute(sql)
+            self.conn.commit()
+            self.disconnect()
+            return "Sᴜᴄᴄᴇssꜰᴜʟʟʏ Rᴇᴍᴏᴠᴇᴅ Fʀᴏᴍ Lᴇᴇᴄʜ Lᴏɢs 😁"
 
     def user_addsudo(self, user_id: int):
         if self.err:
@@ -132,7 +154,7 @@ class DbManger:
         self.cur.execute(sql)
         self.conn.commit()
         self.disconnect()
-        return "Successfully Promoted as Sudo"
+        return "Usᴇʀ Sᴜᴄᴄᴇssꜰᴜʟʟʏ Pʀᴏᴍᴏᴛᴇᴅ As Sᴜᴅᴏ ✅"
 
     def user_rmsudo(self, user_id: int):
         if self.err:
@@ -142,7 +164,7 @@ class DbManger:
             self.cur.execute(sql)
             self.conn.commit()
             self.disconnect()
-            return "Successfully removed from Sudo"
+            return "Usᴇʀ Sᴜᴄᴄᴇssꜰᴜʟʟʏ Rᴇᴍᴏᴠᴇᴅ As Sᴜᴅᴏ 😁"
 
     def user_media(self, user_id: int):
         if self.err:
@@ -176,7 +198,6 @@ class DbManger:
             if self.user_check(user_id)
             else "INSERT INTO users (thumb, uid) VALUES (%s, %s)"
         )
-
         self.cur.execute(sql, (image_bin, user_id))
         self.conn.commit()
         self.disconnect()
@@ -189,30 +210,6 @@ class DbManger:
         self.cur.execute(sql)
         self.conn.commit()
         self.disconnect()
-
-        # For Leech log
-
-    def addleech_log(self, chat_id: int):
-        if self.err:
-            return "Error in DB connection, check log for details"
-        elif not self.user_check(chat_id):
-            sql = f"INSERT INTO users (uid, leechlog) VALUES ({chat_id}, TRUE)"
-        else:
-            sql = f"UPDATE users SET leechlog = TRUE WHERE uid = {chat_id}"
-        self.cur.execute(sql)
-        self.conn.commit()
-        self.disconnect()
-        return "Successfully added to leech logs"
-
-    def rmleech_log(self, chat_id: int):
-        if self.err:
-            return "Error in DB connection, check log for details"
-        elif self.user_check(chat_id):
-            sql = f"UPDATE users SET leechlog = FALSE WHERE uid = {chat_id}"
-            self.cur.execute(sql)
-            self.conn.commit()
-            self.disconnect()
-            return "Removed from leech logs successfully"
 
     def user_check(self, uid: int):
         self.cur.execute(f"SELECT * FROM users WHERE uid = {uid}")

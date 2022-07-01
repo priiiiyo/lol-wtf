@@ -1,3 +1,4 @@
+from threading import Thread
 from time import sleep
 
 from telegram import InlineKeyboardMarkup
@@ -19,19 +20,28 @@ from bot.helper.ext_utils.bot_utils import (
 from bot.helper.telegram_helper import button_build
 from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.telegram_helper.filters import CustomFilters
-from bot.helper.telegram_helper.message_utils import sendMarkup, sendMessage
+from bot.helper.telegram_helper.message_utils import (
+    auto_delete_message,
+    deleteMessage,
+    sendMarkup,
+    sendMessage,
+)
 
 
 def cancel_mirror(update, context):
-    args = update.message.text.split(" ", maxsplit=1)
     user_id = update.message.from_user.id
-    if len(args) > 1:
-        gid = args[1]
+    if len(context.args) == 1:
+        gid = context.args[0]
         dl = getDownloadByGid(gid)
         if not dl:
-            return sendMessage(
-                f"GID: <code>{gid}</code> Not Found.", context.bot, update.message
+            reply_message = sendMessage(
+                f"GID ⇢ <code>{gid}</code> Nᴏᴛ Fᴏᴜɴᴅ.", context.bot, update.message
             )
+            Thread(
+                target=auto_delete_message,
+                args=(context.bot, update.message, reply_message),
+            ).start()
+            return reply_message
     elif update.message.reply_to_message:
         mirror_message = update.message.reply_to_message
         with download_dict_lock:
@@ -41,35 +51,60 @@ def cancel_mirror(update, context):
             else:
                 dl = None
         if not dl:
-            return sendMessage(
-                "This is not an active task!", context.bot, update.message
+            reply_message = sendMessage(
+                "Tʜɪs ɪs ɴᴏᴛ ᴀɴ ᴀᴄᴛɪᴠᴇ ᴛᴀsᴋ﹗", context.bot, update.message
             )
-    elif len(args) == 1:
-        msg = f"Reply to an active <code>/{BotCommands.MirrorCommand}</code> message which was used to start the download or send <code>/{BotCommands.CancelMirror} GID</code> to cancel it!"
-        return sendMessage(msg, context.bot, update.message)
+            Thread(
+                target=auto_delete_message,
+                args=(context.bot, update.message, reply_message),
+            ).start()
+            return reply_message
+    elif len(context.args) == 0:
+        msg = f"Rᴇᴘʟʏ ᴛᴏ ᴀɴ ᴀᴄᴛɪᴠᴇ <code>/{BotCommands.MirrorCommand}</code> ᴍᴇssᴀɢᴇ ᴡʜɪᴄʜ ᴡᴀs ᴜsᴇᴅ ᴛᴏ sᴛᴀʀᴛ ᴛʜᴇ ᴅᴏᴡɴʟᴏᴀᴅ ᴏʀ sᴇɴᴅ <code>/{BotCommands.CancelMirror} GID</code> ᴛᴏ ᴄᴀɴᴄᴇʟ ɪᴛ﹗"
+        reply_message = sendMessage(msg, context.bot, update.message)
+        Thread(
+            target=auto_delete_message,
+            args=(context.bot, update.message, reply_message),
+        ).start()
+        return reply_message
 
     if (
         OWNER_ID != user_id
         and dl.message.from_user.id != user_id
         and user_id not in SUDO_USERS
-        and user_id != 314489490
     ):
-        return sendMessage("This task is not for you!", context.bot, update.message)
-
+        reply_message = sendMessage(
+            "Tʜɪs ᴛᴀsᴋ ɪs ɴᴏᴛ ꜰᴏʀ ʏᴏᴜ﹗", context.bot, update.message
+        )
+        Thread(
+            target=auto_delete_message,
+            args=(context.bot, update.message, reply_message),
+        ).start()
+        return reply_message
+    reply_message = ""
     if dl.status() == MirrorStatus.STATUS_ARCHIVING:
-        sendMessage(
-            "Archival in Progress, You Can't Cancel It.", context.bot, update.message
+        reply_message = sendMessage(
+            "Aʀᴄʜɪᴠᴀʟ ɪɴ Pʀᴏɢʀᴇss, Yᴏᴜ Cᴀɴ'ᴛ Cᴀɴᴄᴇʟ Iᴛ.", context.bot, update.message
         )
     elif dl.status() == MirrorStatus.STATUS_EXTRACTING:
-        sendMessage(
-            "Extract in Progress, You Can't Cancel It.", context.bot, update.message
+        reply_message = sendMessage(
+            "Exᴛʀᴀᴄᴛ ɪɴ Pʀᴏɢʀᴇss, Yᴏᴜ Cᴀɴ'ᴛ Cᴀɴᴄᴇʟ Iᴛ.", context.bot, update.message
         )
     elif dl.status() == MirrorStatus.STATUS_SPLITTING:
-        sendMessage(
-            "Split in Progress, You Can't Cancel It.", context.bot, update.message
+        reply_message = sendMessage(
+            "Sᴘʟɪᴛ ɪɴ Pʀᴏɢʀᴇss, Yᴏᴜ Cᴀɴ'ᴛ Cᴀɴᴄᴇʟ Iᴛ.", context.bot, update.message
         )
     else:
         dl.download().cancel_download()
+        Thread(
+            target=deleteMessage,
+            args=(context.bot, update.message, True),
+        ).start()
+    if reply_message != "":
+        Thread(
+            target=auto_delete_message,
+            args=(context.bot, update.message, reply_message),
+        ).start()
 
 
 def cancel_all(status):
@@ -83,21 +118,21 @@ def cancel_all(status):
 
 def cancell_all_buttons(update, context):
     buttons = button_build.ButtonMaker()
-    buttons.sbutton("Downloading", "canall down")
-    buttons.sbutton("Uploading", "canall up")
+    buttons.sbutton("Dᴏᴡɴʟᴏᴀᴅɪɴɢ", "canall down")
+    buttons.sbutton("Uᴘʟᴏᴀᴅɪɴɢ", "canall up")
     if QB_SEED:
-        buttons.sbutton("Seeding", "canall seed")
-    buttons.sbutton("Cloning", "canall clone")
-    buttons.sbutton("All", "canall all")
+        buttons.sbutton("Uᴘʟᴏᴀᴅɪɴɢ", "canall seed")
+    buttons.sbutton("Cʟᴏɴɪɴɢ", "canall clone")
+    buttons.sbutton("Aʟʟ", "canall all")
     button = InlineKeyboardMarkup(buttons.build_menu(2))
-    sendMarkup("Choose tasks to cancel.", context.bot, update.message, button)
+    sendMarkup("Cʜᴏᴏsᴇ ᴛᴀsᴋs ᴛᴏ ᴄᴀɴᴄᴇʟ﹕ ", context.bot, update.message, button)
 
 
 def cancel_all_update(update, context):
     query = update.callback_query
     user_id = query.from_user.id
     data = query.data
-    data = data.split(" ")
+    data = data.split()
     if CustomFilters._owner_query(user_id):
         query.answer()
         query.message.delete()

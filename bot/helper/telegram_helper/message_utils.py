@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from time import sleep
 
 from pyrogram.errors import FloodWait
@@ -7,6 +8,7 @@ from telegram.message import Message
 
 from bot import (
     AUTO_DELETE_MESSAGE_DURATION,
+    AUTO_DELETE_UPLOAD_MESSAGE_DURATION,
     DOWNLOAD_STATUS_UPDATE_INTERVAL,
     LOGGER,
     RSS_CHAT_ID,
@@ -60,7 +62,7 @@ def sendMarkup(text: str, bot, message: Message, reply_markup: InlineKeyboardMar
 
 def editMessage(text: str, message: Message, reply_markup=None):
     try:
-        bot.editMessageText(
+        return bot.editMessageText(
             text=text,
             message_id=message.message_id,
             chat_id=message.chat.id,
@@ -72,6 +74,25 @@ def editMessage(text: str, message: Message, reply_markup=None):
         LOGGER.warning(str(r))
         sleep(r.retry_after * 1.5)
         return editMessage(text, message, reply_markup)
+    except Exception as e:
+        LOGGER.error(str(e))
+        return
+
+
+def sendPhoto(text: str, message, photo, reply_markup=None):
+    try:
+        return bot.send_photo(
+            chat_id=message.chat_id,
+            photo=photo,
+            reply_to_message_id=message.message_id,
+            caption=text,
+            reply_markup=reply_markup,
+            parse_mode="HTMl",
+        )
+    except RetryAfter as r:
+        LOGGER.warning(str(r))
+        sleep(r.retry_after * 1.5)
+        return sendPhoto(text, message, photo, reply_markup)
     except Exception as e:
         LOGGER.error(str(e))
         return
@@ -105,33 +126,24 @@ def sendRss(text: str, bot):
             return
 
 
-async def sendRss_pyro(text: str):
-    rss_session = Client(
-        name="rss_session",
-        api_id=int(TELEGRAM_API),
-        api_hash=TELEGRAM_HASH,
-        session_string=USER_STRING_SESSION,
-        parse_mode=enums.ParseMode.HTML,
-    )
-    await rss_session.start()
-    try:
-        return await rss_session.send_message(
-            RSS_CHAT_ID, text, disable_web_page_preview=True
-        )
-    except FloodWait as e:
-        LOGGER.warning(str(e))
-        await asleep(e.value * 1.5)
-        return await sendRss(text)
-    except Exception as e:
-        LOGGER.error(str(e))
-        return
-
-
-def deleteMessage(bot, message: Message):
+def deleteMessage(bot, message: Message, wait=False):
+    if wait:
+        sleep(AUTO_DELETE_MESSAGE_DURATION)
     try:
         bot.deleteMessage(chat_id=message.chat.id, message_id=message.message_id)
     except Exception as e:
         LOGGER.error(str(e))
+
+
+def auto_delete_reply_message(bot, message: Message):
+    if AUTO_DELETE_UPLOAD_MESSAGE_DURATION != -1:
+        sleep(AUTO_DELETE_UPLOAD_MESSAGE_DURATION)
+        try:
+            bot.deleteMessage(
+                chat_id=message.chat.id, message_id=message.reply_to_message
+            )
+        except Exception as e:
+            LOGGER.error(str(e))
 
 
 def sendLogFile(bot, message: Message):
@@ -145,8 +157,24 @@ def sendLogFile(bot, message: Message):
 
 
 def auto_delete_message(bot, cmd_message: Message, bot_message: Message):
-    if AUTO_DELETE_MESSAGE_DURATION != -1:
+    if cmd_message.chat.type == "private":
+        pass
+    elif AUTO_DELETE_MESSAGE_DURATION != -1:
         sleep(AUTO_DELETE_MESSAGE_DURATION)
+        try:
+            # Skip if None is passed meaning we don't want to delete bot xor
+            # cmd message
+            deleteMessage(bot, cmd_message)
+            deleteMessage(bot, bot_message)
+        except AttributeError:
+            pass
+
+
+def auto_delete_upload_message(bot, cmd_message: Message, bot_message: Message):
+    if cmd_message.chat.type == "private":
+        pass
+    elif AUTO_DELETE_UPLOAD_MESSAGE_DURATION != -1:
+        sleep(AUTO_DELETE_UPLOAD_MESSAGE_DURATION)
         try:
             # Skip if None is passed meaning we don't want to delete bot xor
             # cmd message

@@ -22,6 +22,7 @@ from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.message_utils import (
     auto_delete_message,
+    auto_delete_upload_message,
     editMessage,
     sendMarkup,
     sendMessage,
@@ -43,9 +44,8 @@ def rss_list(update, context):
 
 def rss_get(update, context):
     try:
-        args = update.message.text.split(" ")
-        title = args[1]
-        count = int(args[2])
+        title = context.args[0]
+        count = int(context.args[1])
         feed_url = rss_dict.get(title)
         if feed_url is not None and count > 0:
             try:
@@ -82,12 +82,12 @@ def rss_get(update, context):
 
 def rss_sub(update, context):
     try:
-        args = update.message.text.split(" ", 3)
-        title = str(args[1])
-        feed_link = str(args[2])
+        args = update.message.text.split(maxsplit=3)
+        title = args[1].strip()
+        feed_link = args[2].strip()
         f_lists = []
-        try:
-            filters = str(args[3]).lower()
+        if len(args) == 4:
+            filters = args[3].lstrip().lower()
             if filters.startswith("f: "):
                 filters = filters.split("f: ", 1)[1]
                 filters_list = filters.split("|")
@@ -96,16 +96,22 @@ def rss_sub(update, context):
                     f_lists.append(y)
             else:
                 filters = None
-        except BaseException:
+        else:
             filters = None
+
         exists = rss_dict.get(title)
         if exists is not None:
             LOGGER.error("This title already subscribed! Choose another title!")
-            return sendMessage(
+            reply_message = sendMessage(
                 "This title already subscribed! Choose another title!",
                 context.bot,
                 update.message,
             )
+            Thread(
+                target=auto_delete_message,
+                args=(context.bot, update.message, reply_message),
+            ).start()
+            return reply_message
         try:
             rss_d = feedparse(feed_link)
             sub_msg = "<b>Subscribed!</b>"
@@ -155,8 +161,7 @@ def rss_sub(update, context):
 
 def rss_unsub(update, context):
     try:
-        args = update.message.text.split(" ")
-        title = str(args[1])
+        title = context.args[0]
         exists = rss_dict.get(title)
         if exists is None:
             msg = "Rss link not exists! Nothing removed!"
@@ -192,7 +197,7 @@ def rss_settings(update, context):
     button = InlineKeyboardMarkup(buttons.build_menu(1))
     setting = sendMarkup("Rss Settings", context.bot, update.message, button)
     Thread(
-        target=auto_delete_message, args=(context.bot, update.message, setting)
+        target=auto_delete_upload_message, args=(context.bot, update.message, setting)
     ).start()
 
 
@@ -201,7 +206,7 @@ def rss_set_update(update, context):
     user_id = query.from_user.id
     msg = query.message
     data = query.data
-    data = data.split(" ")
+    data = data.split()
     if not CustomFilters._owner_query(user_id):
         query.answer(
             text="You don't have permission to use these buttons!", show_alert=True
@@ -232,7 +237,7 @@ def rss_set_update(update, context):
         try:
             query.message.delete()
             query.message.reply_to_message.delete()
-        except BaseException:
+        except Exception:
             pass
 
 
