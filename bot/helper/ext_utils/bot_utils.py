@@ -438,6 +438,4 @@ T/D : {TORRENT_DIRECT_LIMIT}GB | Z/U : {ZIP_UNZIP_LIMIT}GB
 """
 
 
-dispatcher.add_handler(
-    CallbackQueryHandler(pop_up_stats, pattern=f"^{str(THREE)}$")
-)
+dispatcher.add_handler(CallbackQueryHandler(pop_up_stats, pattern=f"^{str(THREE)}$"))
