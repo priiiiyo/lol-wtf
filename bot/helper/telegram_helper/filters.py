@@ -1,6 +1,7 @@
-from telegram.ext import MessageFilter
 from telegram import Message
-from bot import AUTHORIZED_CHATS, SUDO_USERS, OWNER_ID
+from telegram.ext import MessageFilter
+
+from bot import AUTHORIZED_CHATS, OWNER_ID, SUDO_USERS
 
 
 class CustomFilters:
@@ -32,4 +33,3 @@ class CustomFilters:
     @staticmethod
     def _owner_query(user_id):
         return user_id == OWNER_ID or user_id in SUDO_USERS
-

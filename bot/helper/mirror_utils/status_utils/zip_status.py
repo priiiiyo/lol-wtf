@@ -1,4 +1,8 @@
-from bot.helper.ext_utils.bot_utils import get_readable_file_size, MirrorStatus, EngineStatus
+from bot.helper.ext_utils.bot_utils import (
+    EngineStatus,
+    MirrorStatus,
+    get_readable_file_size,
+)
 
 
 class ZipStatus:
@@ -9,10 +13,10 @@ class ZipStatus:
         self.message = message
 
     def progress(self):
-        return '0'
+        return "0"
 
     def speed(self):
-        return '0'
+        return "0"
 
     def name(self):
         return self.__name

@@ -1,15 +1,20 @@
 from bot import DOWNLOAD_DIR, LOGGER
-from bot.helper.ext_utils.bot_utils import MirrorStatus, EngineStatus, get_readable_file_size, get_readable_time
+from bot.helper.ext_utils.bot_utils import (
+    EngineStatus,
+    MirrorStatus,
+    get_readable_file_size,
+    get_readable_time,
+)
+
 
 def get_download(client, hash_):
     try:
         return client.torrents_info(torrent_hashes=hash_)[0]
     except Exception as e:
-        LOGGER.error(f'{e}: while getting torrent info')
+        LOGGER.error(f"{e}: while getting torrent info")
 
 
 class QbDownloadStatus:
-
     def __init__(self, listener, obj):
         self.__obj = obj
         self.__listener = listener
@@ -25,7 +30,7 @@ class QbDownloadStatus:
         Calculates the progress of the mirror (upload or download)
         :return: returns progress in percentage
         """
-        return f'{round(self.__info.progress*100, 2)}%'
+        return f"{round(self.__info.progress*100, 2)}%"
 
     def size_raw(self):
         """

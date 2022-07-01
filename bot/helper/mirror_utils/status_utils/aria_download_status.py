@@ -1,15 +1,15 @@
-from bot import aria2, DOWNLOAD_DIR, LOGGER
-from bot.helper.ext_utils.bot_utils import MirrorStatus, EngineStatus
+from bot import DOWNLOAD_DIR, LOGGER, aria2
+from bot.helper.ext_utils.bot_utils import EngineStatus, MirrorStatus
+
 
 def get_download(gid):
     try:
         return aria2.get_download(gid)
     except Exception as e:
-        LOGGER.error(f'{e}: while getting torrent info')
+        LOGGER.error(f"{e}: while getting torrent info")
 
 
 class AriaDownloadStatus:
-
     def __init__(self, gid, listener):
         self.__gid = gid
         self.__download = get_download(gid)
@@ -65,10 +65,9 @@ class AriaDownloadStatus:
         else:
             return MirrorStatus.STATUS_DOWNLOADING
 
-    
     def eng(self):
         return EngineStatus.STATUS_ARIA
-        
+
     def aria_download(self):
         return self.__download
 
@@ -95,9 +94,9 @@ class AriaDownloadStatus:
             return
         if len(download.followed_by_ids) != 0:
             downloads = aria2.get_downloads(download.followed_by_ids)
-            self.__listener.onDownloadError('Download stopped by user!')
+            self.__listener.onDownloadError("Download stopped by user!")
             aria2.remove(downloads, force=True, files=True)
             aria2.remove([download], force=True, files=True)
             return
-        self.__listener.onDownloadError('Download stopped by user!')
+        self.__listener.onDownloadError("Download stopped by user!")
         aria2.remove([download], force=True, files=True)
