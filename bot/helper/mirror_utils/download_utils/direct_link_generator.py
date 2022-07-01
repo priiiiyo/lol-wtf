@@ -340,9 +340,7 @@ def fichier(link: str) -> str:
     elif len(soup.find_all("div", {"class": "ct_warn"})) == 2:
         str_2 = soup.find_all("div", {"class": "ct_warn"})[-1]
         if "you must wait" in str(str_2).lower():
-            if numbers := [
-                int(word) for word in str(str_2).split() if word.isdigit()
-            ]:
+            if numbers := [int(word) for word in str(str_2).split() if word.isdigit()]:
                 raise DirectDownloadLinkException(
                     f"ERROR: 1fichier is on a limit. Please wait {numbers[0]} minute."
                 )
@@ -362,9 +360,7 @@ def fichier(link: str) -> str:
         str_1 = soup.find_all("div", {"class": "ct_warn"})[-2]
         str_3 = soup.find_all("div", {"class": "ct_warn"})[-1]
         if "you must wait" in str(str_1).lower():
-            if numbers := [
-                int(word) for word in str(str_1).split() if word.isdigit()
-            ]:
+            if numbers := [int(word) for word in str(str_1).split() if word.isdigit()]:
                 raise DirectDownloadLinkException(
                     f"ERROR: 1fichier is on a limit. Please wait {numbers[0]} minute."
                 )

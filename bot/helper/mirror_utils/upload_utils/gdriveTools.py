@@ -810,9 +810,9 @@ class GoogleDriveHelper:
             return "", None
 
         path = [
-            telegraph.create_page(
-                title="qbit-Mirrors Drive Search", content=content
-            )["path"]
+            telegraph.create_page(title="qbit-Mirrors Drive Search", content=content)[
+                "path"
+            ]
             for content in telegraph_content
         ]
 
